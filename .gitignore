@@ -8,6 +8,10 @@ CLAUDE.local.md
 # Install backups
 *.bak
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
