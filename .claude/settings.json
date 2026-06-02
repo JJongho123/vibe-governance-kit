@@ -1,0 +1,34 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schema/settings.json",
+  "_comment": "Harness-enforced governance (vibe-governance-kit). Two deterministic layers: (1) permissions.deny — fast static blocks; (2) hooks — config-driven, read governance.config.json. Edit governance.config.json for project-specific values, not this file. Keep this committed; senior-managed.",
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -fd*)",
+      "Read(./secrets/**)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/id_rsa)",
+      "Read(**/*.pem)"
+    ]
+  },
+  "attribution": {
+    "commit": "Co-authored-by: Claude <noreply@anthropic.com>"
+  },
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash", "command": "python .claude/hooks/pre-tool-bash.py" },
+      { "matcher": "Bash", "command": "python .claude/hooks/pre-push-check.py" },
+      { "matcher": "Edit|Write|NotebookEdit", "command": "python .claude/hooks/pre-tool-write.py" }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write", "command": "python .claude/hooks/post-tool-edit.py" }
+    ],
+    "SessionStart": [{ "command": "python .claude/hooks/session-start.py" }]
+  }
+}

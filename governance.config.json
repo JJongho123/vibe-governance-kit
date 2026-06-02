@@ -1,0 +1,69 @@
+{
+  "$schema": "./governance.config.schema.json",
+  "_comment": "Single source of project-specific values for the vibe-governance-kit harness. Edit THIS file per project — the hooks read it; you should not need to edit the Python. See README.md §Adopt.",
+
+  "project": {
+    "name": "my-project",
+    "mainBranch": "main",
+    "remote": "origin"
+  },
+
+  "dangerousCommands": {
+    "enabled": true,
+    "comment": "Blocks destructive Bash via PreToolUse. Built-in patterns (rm -rf, force push, fork bomb, mkfs, etc.) always apply. Add project-specific ones here.",
+    "extraPatterns": [],
+    "presets": {
+      "aws": false,
+      "terraform": false,
+      "publish": true
+    }
+  },
+
+  "secretScan": {
+    "enabled": true,
+    "comment": "Last-line secret scan before a file hits disk. Built-in patterns (AWS keys, JWT, private keys, generic password/api_key) always apply. Toggle locale presets and add your own.",
+    "extraPatterns": [],
+    "presets": {
+      "krPii": false,
+      "cognito": false,
+      "connectArn": false
+    }
+  },
+
+  "boundaries": {
+    "enabled": false,
+    "comment": "Branch->path ownership enforcement. OFF by default. Turn on for multi-agent / multi-owner repos. mode 'soft' warns on unknown branches; 'strict' denies.",
+    "mode": "soft",
+    "branchPattern": "^(?:feat|fix|chore|refactor|perf|test|docs)/(?P<domain>[a-z0-9-]+)(?:/|$)",
+    "bootstrapBranchPattern": "^(?:feat|chore|fix)/(?:bootstrap|infra|shared)(?:/|$)",
+    "globalWritable": ["^docs/", "^CHANGELOG\\.md$", "^\\.claude/logs/", "^README\\.md$"],
+    "bootstrapOnly": [
+      "^\\.claude/settings\\.json$",
+      "^\\.claude/hooks/",
+      "^\\.claude/agents/",
+      "^\\.claude/commands/",
+      "^\\.github/",
+      "^CODEOWNERS$",
+      "^governance\\.config\\.json$"
+    ],
+    "domainZones": ["^src/{domain}/", "^domains/{domain}/", "^packages/{domain}/"]
+  },
+
+  "prePush": {
+    "enabled": true,
+    "comment": "Blocks `git push` when the local branch is behind origin/<target> (prevents stale/diverged pushes). Force pushes are handled by dangerousCommands."
+  },
+
+  "format": {
+    "enabled": true,
+    "comment": "PostToolUse auto-format. Silently skips any formatter that is not installed."
+  },
+
+  "sessionStart": {
+    "enabled": true,
+    "comment": "Injects repo state (branch, divergence, uncommitted, recent commits, open PRs) into the session. host: github | gitlab | none.",
+    "host": "github",
+    "showPullRequests": true,
+    "staleDays": 3
+  }
+}

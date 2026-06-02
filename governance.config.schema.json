@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/your-org/vibe-governance-kit/governance.config.schema.json",
+  "title": "Vibe Governance Kit config",
+  "description": "Project-specific values consumed by the .claude/hooks/* harness.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "mainBranch": { "type": "string", "default": "main" },
+        "remote": { "type": "string", "default": "origin" }
+      }
+    },
+    "dangerousCommands": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "extraPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["regex", "reason"],
+            "properties": {
+              "regex": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "presets": {
+          "type": "object",
+          "properties": {
+            "aws": { "type": "boolean" },
+            "terraform": { "type": "boolean" },
+            "publish": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "secretScan": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "extraPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["regex", "label"],
+            "properties": {
+              "regex": { "type": "string" },
+              "label": { "type": "string" }
+            }
+          }
+        },
+        "presets": {
+          "type": "object",
+          "properties": {
+            "krPii": { "type": "boolean" },
+            "cognito": { "type": "boolean" },
+            "connectArn": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "mode": { "type": "string", "enum": ["soft", "strict"], "default": "soft" },
+        "branchPattern": { "type": "string" },
+        "bootstrapBranchPattern": { "type": "string" },
+        "globalWritable": { "type": "array", "items": { "type": "string" } },
+        "bootstrapOnly": { "type": "array", "items": { "type": "string" } },
+        "domainZones": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Path regexes with a literal {domain} placeholder substituted from the branch name."
+        }
+      }
+    },
+    "prePush": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": { "enabled": { "type": "boolean", "default": true } }
+    },
+    "format": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": { "enabled": { "type": "boolean", "default": true } }
+    },
+    "sessionStart": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "host": { "type": "string", "enum": ["github", "gitlab", "none"], "default": "github" },
+        "showPullRequests": { "type": "boolean", "default": true },
+        "staleDays": { "type": "integer", "default": 3 }
+      }
+    }
+  }
+}

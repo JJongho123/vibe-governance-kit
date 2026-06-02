@@ -1,0 +1,14 @@
+# Personal, non-shared harness overrides
+.claude/settings.local.json
+.claude/logs/
+
+# Personal CLAUDE override
+CLAUDE.local.md
+
+# Install backups
+*.bak
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp

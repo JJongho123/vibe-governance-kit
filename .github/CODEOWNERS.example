@@ -1,0 +1,15 @@
+# CODEOWNERS — copy to ./CODEOWNERS or .github/CODEOWNERS and edit.
+# Last matching pattern wins. Owners are auto-requested as reviewers.
+
+# Harness & governance — senior-managed (team-wide blast radius).
+/.claude/                 @senior
+/governance.config.json   @senior
+/.github/                 @senior
+/CODEOWNERS               @senior
+
+# Docs — open to all.
+/docs/                    @team
+
+# Example domain ownership (mirror your governance.config.json boundaries).
+# /src/auth/              @alice
+# /src/billing/           @bob

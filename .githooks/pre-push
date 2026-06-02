@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Git pre-push hook — block pushing a branch that is behind its remote target.
+#
+# Mirror of .claude/hooks/pre-push-check.py for developers using non-CLI
+# Claude clients (Desktop / IDE) or plain git. Both hooks return the same
+# verdict, so running both causes no conflict.
+#
+# Install once per clone:   git config core.hooksPath .githooks
+# (or symlink into .git/hooks/pre-push)
+set -euo pipefail
+
+remote_name="${1:-origin}"
+
+# stdin lines: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Skip deletes (local_sha all zeros).
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+  # New branch on remote (remote_sha all zeros) -> nothing to be behind of.
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+
+  branch="${remote_ref#refs/heads/}"
+
+  # Fetch the latest remote state (best-effort, non-fatal).
+  git fetch "$remote_name" "$branch" >/dev/null 2>&1 || continue
+
+  # Is the remote tip an ancestor of what we're pushing? If not, we're behind.
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" >/dev/null 2>&1; then
+    echo "[pre-push] DENY: local '$branch' is behind ${remote_name}/${branch} -- rebase or merge first" >&2
+    echo "  suggestion: git fetch ${remote_name} ${branch} && git rebase ${remote_name}/${branch}" >&2
+    exit 1
+  fi
+done
+
+exit 0
