@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""PreToolUse(Bash) hook — block `git push` when the local branch is behind.
+"""PreToolUse(Bash) 훅 — 로컬 브랜치가 뒤처졌을 때 `git push`를 차단한다.
 
-For ``git push`` commands, fetches the remote target and checks whether
-``<remote>/<branch>`` is an ancestor of HEAD. If the local branch is behind,
-returns exit code 2 to deny. Prevents a stale push that would create a
-diverged history requiring a force-push or messy merge.
+``git push`` 명령에 대해 원격 대상을 fetch하고 ``<remote>/<branch>``가
+HEAD의 조상인지 확인한다. 로컬 브랜치가 뒤처져 있으면 종료 코드 2를 반환하여
+거부한다. 강제 push나 지저분한 병합이 필요한 분기 이력을 만들어내는, 뒤처진
+push를 방지한다.
 
-Design notes:
-- Force pushes (``--force`` / ``-f``) are skipped here (handled by
-  pre-tool-bash.py + settings.json deny).
-- New-branch first push (remote branch does not yet exist) is fail-open.
-- Unrecognized push shapes (Gerrit ``refs/for/`` etc.) are skipped.
-- All failures (network, git errors, parse errors) are fail-open so the
-  hook can never permanently wedge a session.
+설계 메모:
+- 강제 push(``--force`` / ``-f``)는 여기서 건너뛴다(pre-tool-bash.py +
+  settings.json deny가 처리).
+- 새 브랜치의 첫 push(원격 브랜치가 아직 없음)는 fail-open(허용).
+- 인식되지 않는 push 형태(Gerrit ``refs/for/`` 등)는 건너뛴다.
+- 모든 실패(네트워크, git 오류, 파싱 오류)는 fail-open으로 처리하여 훅이
+  세션을 영구히 막는 일이 없게 한다.
 
-Remote name comes from ``project.remote`` (default ``origin``).
+원격 이름은 ``project.remote``에서 온다(기본 ``origin``).
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def _run(cmd: list[str], *, timeout: int) -> subprocess.CompletedProcess:
 
 
 def _extract_target(command: str, remote: str) -> str | None:
-    """Return '<remote>/<branch>' from a git push command, or None."""
+    """git push 명령에서 '<remote>/<branch>'를 반환하거나, 없으면 None."""
     if re.search(r"\bgit\s+push\s+(?:--force|-f)\b", command):
         return None
     if "refs/for/" in command:
@@ -97,7 +97,7 @@ def main() -> int:
     try:
         payload = read_payload()
     except Exception as exc:
-        print(f"[pre-push-check] WARN: malformed stdin ({exc}); allowing", file=sys.stderr)
+        print(f"[pre-push-check] 경고: 잘못된 stdin ({exc}); 허용함", file=sys.stderr)
         return 0
 
     if payload.get("tool_name") != "Bash":
@@ -119,9 +119,9 @@ def main() -> int:
     if behind:
         branch = target[len(remote) + 1:]
         print(
-            f"[pre-push-check] DENY: local branch is behind {target}"
-            " -- rebase or merge first\n"
-            f"  suggestion: git fetch {remote} {branch} && git rebase {target}",
+            f"[pre-push-check] 거부: 로컬 브랜치가 {target}보다 뒤처짐"
+            " -- 먼저 rebase 또는 merge 하세요\n"
+            f"  제안: git fetch {remote} {branch} && git rebase {target}",
             file=sys.stderr,
         )
         return 2

@@ -1,54 +1,58 @@
 ---
-description: Top 5 CWE + Lethal Trifecta audit on the current branch's staged/unstaged changes.
-argument-hint: "[optional file list or path glob]"
+description: 현재 브랜치의 스테이징/비스테이징 변경에 대한 Top 5 CWE + 치명적 삼중 위협 감사.
+argument-hint: "[선택적 파일 목록 또는 경로 glob]"
 ---
 
-Perform a security audit on the current branch's changes.
+현재 브랜치의 변경분에 대해 보안 감사를 수행합니다.
 
-## Scope selection
+## 범위 선택
 
-1. If `$ARGUMENTS` is empty → use `git diff <mainBranch>...HEAD` (default `main`;
-   read `project.mainBranch` from `governance.config.json` if present).
-2. Else treat `$ARGUMENTS` as a file list or path glob.
+1. `$ARGUMENTS`가 비어 있으면 → `git diff <mainBranch>...HEAD`를 사용(기본 `main`;
+   있으면 `governance.config.json`의 `project.mainBranch`를 읽음).
+2. 그 외에는 `$ARGUMENTS`를 파일 목록 또는 경로 glob으로 취급.
 
-## Top 5 CWE walk-through
+## Top 5 CWE 점검
 
-For each CWE, enumerate matches with a `file:line` citation and a one-sentence
-risk note. Mark ✅ confident-clean, ⚠️ needs-human-verification, ❌ confirmed.
+각 CWE에 대해 `file:line` 인용과 한 문장짜리 위험 메모를 곁들여 일치 항목을
+열거합니다. ✅ 확신-클린, ⚠️ 사람 검증 필요, ❌ 확인됨으로 표시합니다.
 
-### CWE-862 — Missing Authorization
-- Every request handler / endpoint checks authn + authz before reading/writing data.
-- No "TODO: add auth" slipping through.
+### CWE-862 — 권한 누락
 
-### CWE-798 — Hardcoded Credentials
-- No cloud keys, JWTs, tokens, or `password=`/`apiKey=` literals.
-- Config comes from env / secrets manager, not inline.
+- 모든 요청 핸들러 / 엔드포인트가 데이터 읽기/쓰기 전에 인증 + 권한을 확인하는가.
+- "TODO: add auth"가 빠져나가지 않았는가.
 
-### CWE-89 — Injection (SQL / NoSQL / command)
-- Parameterized queries only; no string-concatenated SQL.
-- Shell calls use explicit argv arrays, never `sh -c "$userInput"`.
+### CWE-798 — 자격 증명 하드코딩
+
+- 클라우드 키, JWT, 토큰, `password=`/`apiKey=` 리터럴 없음.
+- 설정은 인라인이 아니라 환경 변수 / 시크릿 매니저에서 온다.
+
+### CWE-89 — 인젝션 (SQL / NoSQL / 명령)
+
+- 파라미터화된 쿼리만; 문자열 연결 SQL 없음.
+- 셸 호출은 명시적 argv 배열을 사용하고, 절대 `sh -c "$userInput"` 아님.
 
 ### CWE-79 — XSS
-- No `dangerouslySetInnerHTML` / unescaped HTML sinks.
-- User strings pass through escape helpers; markdown renderers sanitize.
 
-### CWE-200 — Sensitive Info Exposure
-- Error responses strip stack traces, schemas, internal paths.
-- Logs mask PII.
+- `dangerouslySetInnerHTML` / 이스케이프되지 않은 HTML 싱크 없음.
+- 사용자 문자열은 이스케이프 헬퍼를 거치고, 마크다운 렌더러는 새니타이즈함.
 
-## Lethal Trifecta audit
+### CWE-200 — 민감 정보 노출
 
-Build a table of every new/modified module on an AI/LLM or data-egress path:
+- 오류 응답이 스택 트레이스, 스키마, 내부 경로를 제거함.
+- 로그가 PII를 마스킹함.
 
-| module | ① sensitive data? | ② untrusted input? | ③ external egress? | trifecta?      |
+## 치명적 삼중 위협 감사
+
+AI/LLM 또는 데이터 유출 경로상의 신규/수정 모듈마다 테이블을 작성합니다:
+
+| 모듈   | ① 민감 데이터?    | ② 신뢰 불가 입력?  | ③ 외부 유출?       | 삼중 위협?     |
 | ------ | ----------------- | ------------------ | ------------------ | -------------- |
-| ...    | yes/no + source   | yes/no + source    | yes/no + source    | YES=❌ / NO=✅ |
+| ...    | yes/no + 출처     | yes/no + 출처      | yes/no + 출처      | YES=❌ / NO=✅ |
 
-For any `YES` row, state which element is cheapest to remove (usually ③ egress)
-and give a concrete mitigation.
+`YES`인 행마다, 어떤 요소를 제거하는 것이 가장 저렴한지(보통 ③ 유출) 명시하고
+구체적인 완화책을 제시합니다.
 
-## Output
+## 출력
 
-CWE walkthrough → Trifecta table → final `SUMMARY:` block with ✅/⚠️/❌ counts,
-the highest-severity finding, and a recommended action
-(block merge / request fix / annotate and proceed).
+CWE 점검 → 삼중 위협 테이블 → ✅/⚠️/❌ 개수, 최고 심각도 발견, 권고 조치
+(병합 차단 / 수정 요청 / 주석 후 진행)를 담은 최종 `SUMMARY:` 블록.

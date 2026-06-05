@@ -1,25 +1,25 @@
-# ADR-NNN: [short title]
+# ADR-NNN: [짧은 제목]
 
-- **Status:** Proposed
-- **Date:** YYYY-MM-DD
-- **Supersedes:** —
+- **상태:** 제안됨(Proposed)
+- **날짜:** YYYY-MM-DD
+- **대체 대상:** —
 
-## Context
+## 배경(Context)
 
-<!-- The forces at play. MUST cite at least one of: an incident, a measured
-cost, an external constraint, or a dependency deadline. -->
+<!-- 작용하는 요인들. 다음 중 최소 하나를 반드시 인용할 것: 사고, 측정된
+비용, 외부 제약, 또는 의존성 마감 기한. -->
 
-## Decision
+## 결정(Decision)
 
-<!-- The choice, stated in the active voice: "We will …". -->
+<!-- 능동태로 서술한 선택: "우리는 …할 것이다". -->
 
-## Consequences
+## 결과(Consequences)
 
-<!-- What becomes easier, what becomes harder, what we now have to maintain. -->
+<!-- 무엇이 쉬워지고, 무엇이 어려워지며, 이제 무엇을 유지보수해야 하는가. -->
 
-## Alternatives considered
+## 검토한 대안(Alternatives considered)
 
-<!-- At least two, each with a one-line reason it was rejected. -->
+<!-- 최소 두 가지, 각각 기각된 이유를 한 줄로. -->
 
-1. **[Alternative A]** — rejected because …
-2. **[Alternative B]** — rejected because …
+1. **[대안 A]** — 기각 이유: …
+2. **[대안 B]** — 기각 이유: …

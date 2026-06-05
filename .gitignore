@@ -1,18 +1,18 @@
-# Personal, non-shared harness overrides
+# 개인용, 공유하지 않는 하네스 오버라이드
 .claude/settings.local.json
 .claude/logs/
 
-# Personal CLAUDE override
+# 개인용 CLAUDE 오버라이드
 CLAUDE.local.md
 
-# Install backups
+# 설치 백업
 *.bak
 
-# Python bytecode
+# Python 바이트코드
 __pycache__/
 *.pyc
 
-# OS / editor cruft
+# OS / 에디터 부산물
 .DS_Store
 Thumbs.db
 *.swp

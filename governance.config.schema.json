@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/your-org/vibe-governance-kit/governance.config.schema.json",
-  "title": "Vibe Governance Kit config",
-  "description": "Project-specific values consumed by the .claude/hooks/* harness.",
+  "title": "Vibe Governance Kit 설정",
+  "description": ".claude/hooks/* 하네스가 사용하는 프로젝트별 값.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -80,7 +80,7 @@
         "domainZones": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Path regexes with a literal {domain} placeholder substituted from the branch name."
+          "description": "브랜치 이름에서 치환되는 리터럴 {domain} 자리표시자를 가진 경로 정규식."
         }
       }
     },

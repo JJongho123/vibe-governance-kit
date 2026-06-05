@@ -1,51 +1,51 @@
-<!-- PR template — vibe-governance-kit. Trim sections that don't apply. -->
+<!-- PR 템플릿 — vibe-governance-kit. 해당되지 않는 섹션은 지우세요. -->
 
-## What & why
+## 무엇을 & 왜
 
-<!-- 1–2 sentences. Link the SPEC / issue. -->
+<!-- 1~2문장. SPEC / 이슈를 링크하세요. -->
 
-## Scope
+## 범위
 
-- [ ] PR title/description matches the actual change (no out-of-scope files).
-- [ ] Branch follows `feat|fix|chore/<area>/<task>`.
+- [ ] PR 제목/설명이 실제 변경과 일치(범위 밖 파일 없음).
+- [ ] 브랜치가 `feat|fix|chore/<area>/<task>`를 따름.
 
-## AI attribution
+## AI 표기
 
-- [ ] Correct commit tag applied: `[ai-generated]` / `[ai-assisted]` / `[ai-reviewed]`.
-- [ ] Every AI-generated line was read and understood.
+- [ ] 올바른 커밋 태그 적용: `[ai-generated]` / `[ai-assisted]` / `[ai-reviewed]`.
+- [ ] AI가 생성한 모든 라인을 읽고 이해함.
 
-## Security & secrets
+## 보안 및 시크릿
 
-- [ ] No hardcoded secrets / credentials / tokens (secret scanner clean).
-- [ ] No real customer data / PII in prompts, fixtures, or logs.
-- [ ] Least-privilege for any permission change; no wildcard grants.
+- [ ] 하드코딩된 시크릿 / 자격 증명 / 토큰 없음(시크릿 스캐너 클린).
+- [ ] 프롬프트, 픽스처, 로그에 실제 고객 데이터 / PII 없음.
+- [ ] 모든 권한 변경에 최소 권한; 와일드카드 부여 없음.
 
 ## Top 5 CWE
 
-- [ ] CWE-862 Missing Authorization
-- [ ] CWE-798 Hardcoded Credentials
-- [ ] CWE-89 Injection (SQL / NoSQL / command)
+- [ ] CWE-862 권한 누락
+- [ ] CWE-798 자격 증명 하드코딩
+- [ ] CWE-89 인젝션 (SQL / NoSQL / 명령)
 - [ ] CWE-79 XSS
-- [ ] CWE-200 Sensitive Info Exposure
+- [ ] CWE-200 민감 정보 노출
 
-## Prompt Injection (if any AI/LLM path is touched)
+## 프롬프트 인젝션 (AI/LLM 경로를 건드린 경우)
 
-Lethal Trifecta analysis:
+치명적 삼중 위협 분석:
 
-| element              | present? | source / mitigation |
+| 요소                 | 존재?    | 출처 / 완화책       |
 | -------------------- | -------- | ------------------- |
-| ① sensitive data     |          |                     |
-| ② untrusted input    |          |                     |
-| ③ external egress    |          |                     |
+| ① 민감 데이터        |          |                     |
+| ② 신뢰 불가 입력     |          |                     |
+| ③ 외부 유출          |          |                     |
 
-- [ ] If all three are present, state which was removed and how.
+- [ ] 세 가지가 모두 존재하면, 어떤 것을 어떻게 제거했는지 명시.
 
-## Hallucination check
+## 환각 체크
 
-- [ ] Every SDK method / API / package / config key used actually exists.
-- [ ] Cited doc links / error codes are real.
+- [ ] 사용한 모든 SDK 메서드 / API / 패키지 / 설정 키가 실제로 존재.
+- [ ] 인용된 문서 링크 / 오류 코드가 실재.
 
-## Tests
+## 테스트
 
-- [ ] Tests added or existing tests pass.
-- [ ] Implementation and tests were **not** generated in the same prompt session.
+- [ ] 테스트 추가 또는 기존 테스트 통과.
+- [ ] 구현과 테스트를 같은 프롬프트 세션에서 생성하지 **않음**.

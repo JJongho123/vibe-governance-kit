@@ -1,6 +1,6 @@
 {
   "$schema": "./governance.config.schema.json",
-  "_comment": "Single source of project-specific values for the vibe-governance-kit harness. Edit THIS file per project — the hooks read it; you should not need to edit the Python. See README.md §Adopt.",
+  "_comment": "vibe-governance-kit 하네스의 프로젝트별 값의 단일 출처. 프로젝트마다 이 파일을 수정하세요 — 훅이 이 파일을 읽습니다. Python을 수정할 필요는 없습니다. README.md §도입 참고.",
 
   "project": {
     "name": "my-project",
@@ -10,7 +10,7 @@
 
   "dangerousCommands": {
     "enabled": true,
-    "comment": "Blocks destructive Bash via PreToolUse. Built-in patterns (rm -rf, force push, fork bomb, mkfs, etc.) always apply. Add project-specific ones here.",
+    "comment": "PreToolUse를 통해 파괴적 Bash를 차단합니다. 내장 패턴(rm -rf, 강제 push, 포크 폭탄, mkfs 등)은 항상 적용됩니다. 프로젝트별 패턴을 여기에 추가하세요.",
     "extraPatterns": [],
     "presets": {
       "aws": false,
@@ -21,7 +21,7 @@
 
   "secretScan": {
     "enabled": true,
-    "comment": "Last-line secret scan before a file hits disk. Built-in patterns (AWS keys, JWT, private keys, generic password/api_key) always apply. Toggle locale presets and add your own.",
+    "comment": "파일이 디스크에 닿기 전 마지막 시크릿 스캔. 내장 패턴(AWS 키, JWT, 개인 키, 일반 password/api_key)은 항상 적용됩니다. 로케일 프리셋을 토글하고 직접 추가하세요.",
     "extraPatterns": [],
     "presets": {
       "krPii": false,
@@ -32,7 +32,7 @@
 
   "boundaries": {
     "enabled": false,
-    "comment": "Branch->path ownership enforcement. OFF by default. Turn on for multi-agent / multi-owner repos. mode 'soft' warns on unknown branches; 'strict' denies.",
+    "comment": "브랜치->경로 소유권 강제. 기본 OFF. 멀티 에이전트 / 다중 소유자 저장소에서 켜세요. mode 'soft'는 미지의 브랜치에 경고하고, 'strict'는 거부합니다.",
     "mode": "soft",
     "branchPattern": "^(?:feat|fix|chore|refactor|perf|test|docs)/(?P<domain>[a-z0-9-]+)(?:/|$)",
     "bootstrapBranchPattern": "^(?:feat|chore|fix)/(?:bootstrap|infra|shared)(?:/|$)",
@@ -51,17 +51,17 @@
 
   "prePush": {
     "enabled": true,
-    "comment": "Blocks `git push` when the local branch is behind origin/<target> (prevents stale/diverged pushes). Force pushes are handled by dangerousCommands."
+    "comment": "로컬 브랜치가 origin/<target>보다 뒤처졌을 때 `git push`를 차단합니다(뒤처지거나 분기된 push 방지). 강제 push는 dangerousCommands가 처리합니다."
   },
 
   "format": {
     "enabled": true,
-    "comment": "PostToolUse auto-format. Silently skips any formatter that is not installed."
+    "comment": "PostToolUse 자동 포맷. 설치되지 않은 포매터는 조용히 건너뜁니다."
   },
 
   "sessionStart": {
     "enabled": true,
-    "comment": "Injects repo state (branch, divergence, uncommitted, recent commits, open PRs) into the session. host: github | gitlab | none.",
+    "comment": "저장소 상태(브랜치, 분기, 미커밋, 최근 커밋, 열린 PR)를 세션에 주입합니다. host: github | gitlab | none.",
     "host": "github",
     "showPullRequests": true,
     "staleDays": 3

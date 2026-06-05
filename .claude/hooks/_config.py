@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""Shared config loader for the vibe-governance-kit hooks.
+"""vibe-governance-kit 훅을 위한 공용 설정 로더.
 
-Every hook imports this module to read ``governance.config.json`` instead of
-hardcoding project-specific values. The config file is discovered by walking
-up from the current working directory, so it works from worktrees and
-sub-packages alike.
+모든 훅은 프로젝트별 값을 하드코딩하는 대신 이 모듈을 임포트하여
+``governance.config.json``을 읽는다. 설정 파일은 현재 작업 디렉터리에서
+위로 거슬러 올라가며 탐색하므로, worktree나 하위 패키지에서도 동작한다.
 
-Design contract:
-- Missing / malformed config never crashes a hook — callers fall back to the
-  built-in defaults baked into each hook.
-- All lookups are total: ``cfg("a.b.c", default)`` never raises.
+설계 계약:
+- 설정이 없거나 잘못되어도 훅이 절대 죽지 않는다 — 호출자는 각 훅에 내장된
+  기본값으로 폴백한다.
+- 모든 조회는 안전하다(total): ``cfg("a.b.c", default)``는 예외를 던지지 않는다.
 
-This file lives under .claude/hooks/ so it ships with the harness and has no
-external dependencies (standard library only).
+이 파일은 .claude/hooks/ 아래에 있어 하네스와 함께 배포되며, 외부 의존성이
+없다(표준 라이브러리만 사용).
 """
 from __future__ import annotations
 
@@ -30,7 +29,7 @@ def _find_config() -> Path | None:
         candidate = d / CONFIG_NAME
         if candidate.is_file():
             return candidate
-    # Also check next to the hooks themselves (kit installed standalone).
+    # 훅 자체 옆도 확인한다(키트를 독립적으로 설치한 경우).
     here = Path(__file__).resolve()
     for d in here.parents:
         candidate = d / CONFIG_NAME
@@ -47,12 +46,12 @@ def load_config() -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print(f"[governance] WARN: could not parse {CONFIG_NAME}: {exc}", file=sys.stderr)
+        print(f"[governance] 경고: {CONFIG_NAME} 파싱 실패: {exc}", file=sys.stderr)
         return {}
 
 
 def cfg(dotted: str, default=None):
-    """Total lookup: cfg('boundaries.mode', 'soft')."""
+    """안전한 조회: cfg('boundaries.mode', 'soft')."""
     node = load_config()
     for key in dotted.split("."):
         if isinstance(node, dict) and key in node:

@@ -1,57 +1,57 @@
-# Secret & Data-Loss Prevention Policy
+# 시크릿 및 데이터 유출 방지 정책
 
-Project-agnostic. Applies to every agent session and every PR. Backed by the
-`secretScan` layer in `.claude/hooks/pre-tool-write.py` (last line before disk)
-and CI secret scanning (gitleaks / trufflehog) as backstop.
+프로젝트에 구애받지 않습니다. 모든 에이전트 세션과 모든 PR에 적용됩니다.
+`.claude/hooks/pre-tool-write.py`의 `secretScan` 계층(디스크 직전 마지막
+방어선)과 CI 시크릿 스캐닝(gitleaks / trufflehog)이 이를 보강합니다.
 
-## 1. Never paste into a prompt (hard NEVER list)
+## 1. 프롬프트에 절대 붙여넣지 말 것 (절대 금지 목록)
 
-| Class                | Examples                                                  |
+| 분류                 | 예시                                                      |
 | -------------------- | --------------------------------------------------------- |
-| Cloud credentials    | AWS `AKIA*`/`ASIA*`, secret/session keys, service-account |
-| Tokens               | JWT (`eyJ…`), OAuth secrets, `ghp_*`, `glpat-*`, `xox*`   |
-| Private keys         | `-----BEGIN … PRIVATE KEY-----`                           |
-| PII                  | Names, phone, email, national IDs, card numbers, address  |
-| Customer data        | Real records, transcripts, recordings, ticket bodies      |
-| Internal             | Roadmaps, internal design links, infra identifiers        |
+| 클라우드 자격 증명   | AWS `AKIA*`/`ASIA*`, 시크릿/세션 키, 서비스 계정          |
+| 토큰                 | JWT(`eyJ…`), OAuth 시크릿, `ghp_*`, `glpat-*`, `xox*`     |
+| 개인 키              | `-----BEGIN … PRIVATE KEY-----`                           |
+| PII                  | 이름, 전화번호, 이메일, 주민등록번호, 카드번호, 주소     |
+| 고객 데이터          | 실제 레코드, 통화 기록, 녹취, 티켓 본문                   |
+| 내부                 | 로드맵, 내부 설계 링크, 인프라 식별자                    |
 
-The built-in secret scanner blocks the credential/token/key classes. Enable
-locale presets (e.g. `krPii`) in `governance.config.json` for regional PII, and
-add `extraPatterns` for anything specific to your domain.
+내장 시크릿 스캐너가 자격 증명/토큰/키 분류를 차단합니다. 지역 PII에 대해서는
+`governance.config.json`에서 로케일 프리셋(예: `krPii`)을 켜고, 도메인에 특화된
+것은 `extraPatterns`로 추가하세요.
 
-## 2. Masking rules
+## 2. 마스킹 규칙
 
-- Phone: `010-****-5678` (display) / `sha256(phone+salt)[:16]` (correlation).
-- Email: `c*****@example.com` (display).
-- Long resource IDs: show first 8 chars + `…`; hash for cross-log correlation.
-- Centralize maskers in a shared module; every log call passes through one.
-  No raw PII in logs.
+- 전화번호: `010-****-5678`(표시용) / `sha256(phone+salt)[:16]`(상관관계용).
+- 이메일: `c*****@example.com`(표시용).
+- 긴 리소스 ID: 앞 8자 + `…` 표시; 로그 간 상관관계용으로 해시.
+- 마스커를 공용 모듈에 중앙화하고, 모든 로그 호출이 그 하나를 거치게 한다.
+  로그에 PII 원문 금지.
 
-## 3. Approved tools
+## 3. 승인된 도구
 
-Route sensitive work through an in-region, enterprise-governed model endpoint.
-Personal consumer AI accounts (free ChatGPT / Claude.ai) are out of policy for
-company code or data. Document your team's approved-tool list here.
+민감한 작업은 지역 내, 엔터프라이즈가 관리하는 모델 엔드포인트로 라우팅하세요.
+개인용 소비자 AI 계정(무료 ChatGPT / Claude.ai)은 회사 코드나 데이터에 대해
+정책 위반입니다. 팀의 승인된 도구 목록을 여기에 문서화하세요.
 
-## 4. Fixtures
+## 4. 픽스처
 
-Test code uses synthetic, masked fixtures only. Each fixture carries a
-`DATA_SOURCE: synthetic` header and no real identifiers. Never create a fixture
-by copy-pasting production data.
+테스트 코드는 합성된, 마스킹된 픽스처만 사용합니다. 각 픽스처는
+`DATA_SOURCE: synthetic` 헤더를 달고 실제 식별자를 포함하지 않습니다.
+프로덕션 데이터를 복사-붙여넣어 픽스처를 만들지 마세요.
 
-## 5. Incident procedure
+## 5. 사고 절차
 
-If sensitive data reaches an external AI service:
+민감 데이터가 외부 AI 서비스에 도달한 경우:
 
-1. Report to the team channel within 15 minutes.
-2. Request deletion from the external service's history.
-3. Escalate customer PII to the privacy owner within the legally-required
-   window (e.g. 72h under many regimes).
-4. File a post-mortem; its required output is one concrete prevention change —
-   usually a new `secretScan.extraPatterns` entry (governance §8 Incident→Hook).
+1. 15분 이내에 팀 채널에 보고한다.
+2. 외부 서비스의 기록에서 삭제를 요청한다.
+3. 고객 PII는 법적으로 요구되는 기한(예: 다수 규제에서 72시간) 내에 프라이버시
+   담당자에게 에스컬레이션한다.
+4. 사후 분석을 작성한다. 필수 산출물은 하나의 구체적인 예방 변경 —
+   보통 새 `secretScan.extraPatterns` 항목(거버넌스 §8 사고→훅).
 
-## References
+## 참고
 
 - `docs/governance.md` §7
-- `.claude/hooks/pre-tool-write.py` — implementation
-- `governance.config.json` `secretScan` — configuration
+- `.claude/hooks/pre-tool-write.py` — 구현
+- `governance.config.json` `secretScan` — 설정

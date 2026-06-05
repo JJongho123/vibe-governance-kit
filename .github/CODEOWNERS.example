@@ -1,15 +1,15 @@
-# CODEOWNERS — copy to ./CODEOWNERS or .github/CODEOWNERS and edit.
-# Last matching pattern wins. Owners are auto-requested as reviewers.
+# CODEOWNERS — ./CODEOWNERS 또는 .github/CODEOWNERS로 복사해서 편집하세요.
+# 마지막으로 일치하는 패턴이 우선합니다. 소유자는 리뷰어로 자동 요청됩니다.
 
-# Harness & governance — senior-managed (team-wide blast radius).
+# 하네스 & 거버넌스 — 시니어 관리 (팀 전체에 영향 범위가 큼).
 /.claude/                 @senior
 /governance.config.json   @senior
 /.github/                 @senior
 /CODEOWNERS               @senior
 
-# Docs — open to all.
+# 문서 — 모두에게 열림.
 /docs/                    @team
 
-# Example domain ownership (mirror your governance.config.json boundaries).
+# 도메인 소유권 예시 (governance.config.json의 boundaries를 미러링).
 # /src/auth/              @alice
 # /src/billing/           @bob

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""SessionStart hook — inject current repo state into Claude's context.
+"""SessionStart 훅 — 현재 저장소 상태를 Claude의 컨텍스트에 주입한다.
 
-Writes a compact summary of branch / divergence / uncommitted files / recent
-commits / open pull requests to stdout. Claude Code attaches stdout from
-SessionStart hooks as additional system context for the session.
+브랜치 / 분기 / 미커밋 파일 / 최근 커밋 / 열린 풀 리퀘스트의 간결한 요약을
+stdout에 쓴다. Claude Code는 SessionStart 훅의 stdout을 세션의 추가 시스템
+컨텍스트로 첨부한다.
 
-Host integration (``sessionStart.host``):
-  github -> uses `gh pr list` (GitHub CLI)
-  gitlab -> uses `glab mr list` (GitLab CLI)
-  none   -> git-only, no PR/MR listing
+호스트 연동 (``sessionStart.host``):
+  github -> `gh pr list` 사용 (GitHub CLI)
+  gitlab -> `glab mr list` 사용 (GitLab CLI)
+  none   -> git 전용, PR/MR 목록 없음
 
-External CLIs are invoked only if available with tight timeouts; failures and
-missing CLIs are silently skipped so session start is never blocked.
+외부 CLI는 사용 가능할 때만 빠듯한 타임아웃으로 호출되며, 실패나 누락된 CLI는
+조용히 건너뛰어 세션 시작이 절대 막히지 않는다.
 """
 from __future__ import annotations
 
@@ -75,9 +75,9 @@ def _vs_main(lines: list[str], remote: str, main_branch: str) -> None:
     if len(parts) != 2:
         return
     ahead, behind = parts
-    lines.append(f"- vs {ref}: +{ahead}/-{behind}")
+    lines.append(f"- {ref} 대비: +{ahead}/-{behind}")
     if behind.isdigit() and int(behind) > 0:
-        print(f"[session-start] WARN: behind {ref} by {behind} commits -- consider rebasing", file=sys.stderr)
+        print(f"[session-start] 경고: {ref}보다 {behind}개 커밋 뒤처짐 -- rebase를 고려하세요", file=sys.stderr)
 
 
 def _open_prs_github(lines: list[str], stale_days: int) -> None:
@@ -90,7 +90,7 @@ def _open_prs_github(lines: list[str], stale_days: int) -> None:
     )
     if not isinstance(prs, list) or not prs:
         return
-    lines.append(f"- open PRs ({len(prs)}):")
+    lines.append(f"- 열린 PR ({len(prs)}건):")
     for pr in prs:
         if not isinstance(pr, dict):
             continue
@@ -101,9 +101,9 @@ def _open_prs_github(lines: list[str], stale_days: int) -> None:
         dt = _parse_date(pr.get("updatedAt", ""))
         if dt:
             age = _days_ago(dt)
-            when = f"{int(age)}d ago" if age >= 1 else f"{int(age * 24)}h ago"
+            when = f"{int(age)}일 전" if age >= 1 else f"{int(age * 24)}시간 전"
             if age > stale_days:
-                stale = f" [STALE >{stale_days}d]"
+                stale = f" [오래됨 >{stale_days}일]"
         else:
             when = "?"
         lines.append(f"    #{num}  {author}  {when}{stale}  {title}")
@@ -115,7 +115,7 @@ def _open_mrs_gitlab(lines: list[str], stale_days: int) -> None:
     mrs = run_json(["glab", "mr", "list", "--per-page", "20", "--output", "json"], timeout=TIMEOUT_CLI)
     if not isinstance(mrs, list) or not mrs:
         return
-    lines.append(f"- open MRs ({len(mrs)}):")
+    lines.append(f"- 열린 MR ({len(mrs)}건):")
     for mr in mrs:
         if not isinstance(mr, dict):
             continue
@@ -126,9 +126,9 @@ def _open_mrs_gitlab(lines: list[str], stale_days: int) -> None:
         dt = _parse_date(mr.get("updated_at", ""))
         if dt:
             age = _days_ago(dt)
-            when = f"{int(age)}d ago" if age >= 1 else f"{int(age * 24)}h ago"
+            when = f"{int(age)}일 전" if age >= 1 else f"{int(age * 24)}시간 전"
             if age > stale_days:
-                stale = f" [STALE >{stale_days}d]"
+                stale = f" [오래됨 >{stale_days}일]"
         else:
             when = "?"
         lines.append(f"    !{iid}  {author}  {when}{stale}  {title}")
@@ -141,28 +141,28 @@ def summarize() -> list[str]:
     host = cfg("sessionStart.host", "github")
     stale_days = cfg("sessionStart.staleDays", 3)
 
-    lines = [f"[session-start] {name} repo state"]
+    lines = [f"[session-start] {name} 저장소 상태"]
     _fetch(remote)
 
     branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"], timeout=TIMEOUT_GIT)
     if branch:
-        lines.append(f"- branch: {branch}")
+        lines.append(f"- 브랜치: {branch}")
 
     divergence = run(["git", "rev-list", "--left-right", "--count", "HEAD...@{u}"], timeout=TIMEOUT_GIT)
     if divergence:
         parts = divergence.replace("\t", " ").split()
         if len(parts) == 2:
-            lines.append(f"- ahead/behind upstream: +{parts[0]}/-{parts[1]}")
+            lines.append(f"- 업스트림 대비 앞섬/뒤처짐: +{parts[0]}/-{parts[1]}")
 
     _vs_main(lines, remote, main_branch)
 
     status = run(["git", "status", "--porcelain"], timeout=TIMEOUT_GIT)
     if status:
-        lines.append(f"- uncommitted files: {len(status.splitlines())}")
+        lines.append(f"- 미커밋 파일: {len(status.splitlines())}개")
 
     recent = run(["git", "log", "--oneline", "-5"], timeout=TIMEOUT_GIT)
     if recent:
-        lines.append("- recent commits:")
+        lines.append("- 최근 커밋:")
         for row in recent.splitlines():
             lines.append(f"    {row}")
 
@@ -181,7 +181,7 @@ def main() -> int:
     try:
         print("\n".join(summarize()))
     except Exception as exc:
-        print(f"[session-start] error suppressed: {exc}", file=sys.stderr)
+        print(f"[session-start] 오류 무시됨: {exc}", file=sys.stderr)
     return 0
 
 

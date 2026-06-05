@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to .claude/settings.local.json (gitignored) for personal, non-shared overrides. Never commit this. Use it to allow extra MCP servers or relax a permission locally for experiments — never to weaken a security gate the team relies on.",
+  "_comment": "개인용, 공유하지 않는 오버라이드를 위해 .claude/settings.local.json(gitignore)으로 복사하세요. 절대 커밋하지 마세요. 추가 MCP 서버를 허용하거나 실험을 위해 로컬에서 권한을 완화할 때 사용하고 — 팀이 의존하는 보안 게이트를 절대 약화시키지 마세요.",
   "permissions": {
     "allow": []
   }

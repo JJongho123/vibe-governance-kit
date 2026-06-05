@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Install the vibe-governance-kit harness into a target repository.
+# vibe-governance-kit 하네스를 대상 저장소에 설치합니다.
 #
-# Usage:
-#   ./tools/install.sh /path/to/target-repo          # skips existing files
-#   ./tools/install.sh /path/to/target-repo --force   # overwrites, keeps .bak
+# 사용법:
+#   ./tools/install.sh /path/to/target-repo          # 기존 파일은 건너뜀
+#   ./tools/install.sh /path/to/target-repo --force   # 덮어쓰며 .bak 보존
 set -euo pipefail
 
 TARGET="${1:-}"
 FORCE="${2:-}"
 if [[ -z "$TARGET" ]]; then
-  echo "usage: $0 <target-repo> [--force]" >&2
+  echo "사용법: $0 <대상-저장소> [--force]" >&2
   exit 1
 fi
-[[ -d "$TARGET" ]] || { echo "target does not exist: $TARGET" >&2; exit 1; }
+[[ -d "$TARGET" ]] || { echo "대상이 존재하지 않습니다: $TARGET" >&2; exit 1; }
 
 KIT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="$(cd "$TARGET" && pwd)"
@@ -36,24 +36,24 @@ ITEMS=(
 for rel in "${ITEMS[@]}"; do
   src="$KIT_ROOT/$rel"
   dst="$TARGET/$rel"
-  [[ -e "$src" ]] || { echo "MISSING in kit: $rel"; continue; }
+  [[ -e "$src" ]] || { echo "키트에 없음: $rel"; continue; }
   if [[ -e "$dst" && "$FORCE" != "--force" ]]; then
-    echo "SKIP (exists): $rel"
+    echo "건너뜀 (이미 존재): $rel"
     continue
   fi
   if [[ -e "$dst" && "$FORCE" == "--force" ]]; then
     cp -r "$dst" "$dst.bak"
-    echo "BACKUP: $rel -> $rel.bak"
+    echo "백업: $rel -> $rel.bak"
   fi
   mkdir -p "$(dirname "$dst")"
   cp -r "$src" "$dst"
-  echo "COPY: $rel"
+  echo "복사: $rel"
 done
 
 cat <<EOF
 
-Done. Next steps:
-  1. Edit $TARGET/governance.config.json (project.name, mainBranch, presets, boundaries).
+완료. 다음 단계:
+  1. $TARGET/governance.config.json 수정 (project.name, mainBranch, presets, boundaries).
   2. cd $TARGET && git config core.hooksPath .githooks
-  3. Open Claude Code in the target repo; SessionStart hook confirms wiring.
+  3. 대상 저장소에서 Claude Code를 엽니다; SessionStart 훅이 연결을 확인합니다.
 EOF

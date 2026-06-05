@@ -1,51 +1,56 @@
 ---
-description: Run the full PR review checklist against a given PR or branch.
-argument-hint: <PR number or branch name>
+description: 주어진 PR 또는 브랜치에 대해 전체 PR 리뷰 체크리스트를 실행합니다.
+argument-hint: <PR 번호 또는 브랜치 이름>
 ---
 
-You are acting as a senior reviewer.
+당신은 시니어 리뷰어로서 행동합니다.
 
-Target: `$1` (a pull-request number or a branch name).
+대상: `$1` (풀 리퀘스트 번호 또는 브랜치 이름).
 
-Fetch the diff: try `gh pr diff $1`; fall back to `git diff <mainBranch>...$1`
-(default `main`; read `project.mainBranch` from `governance.config.json`). Do
-**not** post review comments back automatically — output only.
+diff를 가져옵니다: `gh pr diff $1`을 먼저 시도하고, 안 되면
+`git diff <mainBranch>...$1`로 폴백합니다(기본 `main`; `governance.config.json`의
+`project.mainBranch`를 읽습니다). 리뷰 댓글을 자동으로 되돌려 게시하지
+**마세요** — 출력만 합니다.
 
-Walk the diff section by section. For each item output ✅ / ⚠️ / ❌ with a
-**file:line citation** from the diff. Missing evidence = ⚠️ "needs manual
-verification" — no shortcuts.
+diff를 섹션별로 따라가세요. 각 항목에 대해 diff에서 가져온 **file:line 인용**과
+함께 ✅ / ⚠️ / ❌을 출력합니다. 증거 없음 = ⚠️ "수동 검증 필요" — 지름길 없음.
 
-## 1. Basics
-- [ ] Evidence the AI-generated code was read line by line (commit body / PR description).
-- [ ] Correct `[ai-generated]` / `[ai-assisted]` / `[ai-reviewed]` commit tag.
-- [ ] Tests added or existing tests pass.
-- [ ] No `CLAUDE.md` rule violations.
-- [ ] PR title/description matches the actual change scope (no out-of-scope files).
-- [ ] SPEC / issue link attached.
+## 1. 기본
 
-## 2. Security & secrets
-- [ ] No hardcoded secrets / credentials / tokens (secret scanner clean).
-- [ ] Least-privilege for any permission/IAM change; no wildcard actions.
-- [ ] No real customer data / PII in prompts or fixtures.
-- [ ] Logs mask sensitive values.
+- [ ] AI 생성 코드를 한 줄씩 읽었다는 증거(커밋 본문 / PR 설명).
+- [ ] 올바른 `[ai-generated]` / `[ai-assisted]` / `[ai-reviewed]` 커밋 태그.
+- [ ] 테스트 추가 또는 기존 테스트 통과.
+- [ ] `CLAUDE.md` 규칙 위반 없음.
+- [ ] PR 제목/설명이 실제 변경 범위와 일치(범위 밖 파일 없음).
+- [ ] SPEC / 이슈 링크 첨부.
+
+## 2. 보안 및 시크릿
+
+- [ ] 하드코딩된 시크릿 / 자격 증명 / 토큰 없음(시크릿 스캐너 클린).
+- [ ] 모든 권한/IAM 변경에 최소 권한; 와일드카드 액션 없음.
+- [ ] 프롬프트나 픽스처에 실제 고객 데이터 / PII 없음.
+- [ ] 로그가 민감 값을 마스킹함.
 
 ## 3. Top 5 CWE
-- [ ] CWE-862 Missing Authorization
-- [ ] CWE-798 Hardcoded Credentials
-- [ ] CWE-89 Injection (SQL / NoSQL / command)
+
+- [ ] CWE-862 권한 누락
+- [ ] CWE-798 자격 증명 하드코딩
+- [ ] CWE-89 인젝션 (SQL / NoSQL / 명령)
 - [ ] CWE-79 XSS
-- [ ] CWE-200 Sensitive Info Exposure
+- [ ] CWE-200 민감 정보 노출
 
-## 4. Prompt Injection (if AI/LLM path touched)
-- [ ] Lethal Trifecta analysis present (data / input / egress).
-- [ ] Untrusted input wrapped/treated as inert data.
-- [ ] MCP servers (if any) are allow-listed.
+## 4. 프롬프트 인젝션 (AI/LLM 경로를 건드린 경우)
 
-## 5. Hallucination check
-- [ ] Every SDK method / API / package / config key the AI used actually exists.
-- [ ] Cited doc links / error codes are real.
+- [ ] 치명적 삼중 위협 분석 존재(데이터 / 입력 / 유출).
+- [ ] 신뢰할 수 없는 입력을 비활성 데이터로 감싸거나 취급함.
+- [ ] MCP 서버(있다면)가 허용 목록에 있음.
 
-## Output
+## 5. 환각 체크
 
-Render each section's verdicts, then a final `REVIEW SUMMARY:` with ✅/⚠️/❌
-counts and a merge recommendation (approve / request-changes / needs-discussion).
+- [ ] AI가 사용한 모든 SDK 메서드 / API / 패키지 / 설정 키가 실제로 존재.
+- [ ] 인용된 문서 링크 / 오류 코드가 실재.
+
+## 출력
+
+각 섹션의 판정을 렌더링한 뒤, ✅/⚠️/❌ 개수와 병합 권고(승인 / 변경 요청 /
+논의 필요)를 담은 최종 `REVIEW SUMMARY:`를 출력합니다.

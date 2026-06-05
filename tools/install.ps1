@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Install the vibe-governance-kit harness into a target repository.
+  vibe-governance-kit 하네스를 대상 저장소에 설치합니다.
 
 .DESCRIPTION
-  Copies .claude/, governance.config.json (+ schema), .githooks/, .github/
-  templates and docs/ governance docs into the target repo. Existing files
-  are NOT overwritten unless -Force is given; a .bak copy is kept.
+  .claude/, governance.config.json (+ 스키마), .githooks/, .github/ 템플릿,
+  docs/ 거버넌스 문서를 대상 저장소로 복사합니다. -Force를 주지 않으면 기존
+  파일을 덮어쓰지 않으며, .bak 사본을 보존합니다.
 
 .EXAMPLE
   ./tools/install.ps1 -Target C:\workspace\project\my-app
@@ -20,11 +20,11 @@ $ErrorActionPreference = "Stop"
 $kitRoot = Split-Path -Parent $PSScriptRoot
 
 if (-not (Test-Path $Target)) {
-  throw "Target path does not exist: $Target"
+  throw "대상 경로가 존재하지 않습니다: $Target"
 }
 $Target = (Resolve-Path $Target).Path
 
-# (source relative to kit root, whether it's a directory)
+# (키트 루트 기준 상대 경로, 디렉터리 여부와 무관)
 $items = @(
   ".claude/hooks",
   ".claude/commands",
@@ -44,27 +44,27 @@ $items = @(
 function Copy-Item-Safe($src, $dst) {
   if (Test-Path $dst) {
     if (-not $Force) {
-      Write-Host "SKIP (exists): $dst" -ForegroundColor Yellow
+      Write-Host "건너뜀 (이미 존재): $dst" -ForegroundColor Yellow
       return
     }
     Copy-Item $dst "$dst.bak" -Recurse -Force
-    Write-Host "BACKUP: $dst -> $dst.bak" -ForegroundColor DarkYellow
+    Write-Host "백업: $dst -> $dst.bak" -ForegroundColor DarkYellow
   }
   $parent = Split-Path -Parent $dst
   if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
   Copy-Item $src $dst -Recurse -Force
-  Write-Host "COPY: $dst" -ForegroundColor Green
+  Write-Host "복사: $dst" -ForegroundColor Green
 }
 
 foreach ($rel in $items) {
   $src = Join-Path $kitRoot $rel
   $dst = Join-Path $Target $rel
-  if (-not (Test-Path $src)) { Write-Host "MISSING in kit: $rel" -ForegroundColor Red; continue }
+  if (-not (Test-Path $src)) { Write-Host "키트에 없음: $rel" -ForegroundColor Red; continue }
   Copy-Item-Safe $src $dst
 }
 
 Write-Host ""
-Write-Host "Done. Next steps:" -ForegroundColor Cyan
-Write-Host "  1. Edit $Target\governance.config.json (project.name, mainBranch, presets, boundaries)."
+Write-Host "완료. 다음 단계:" -ForegroundColor Cyan
+Write-Host "  1. $Target\governance.config.json 수정 (project.name, mainBranch, presets, boundaries)."
 Write-Host "  2. cd $Target ; git config core.hooksPath .githooks"
-Write-Host "  3. Open Claude Code in the target repo; SessionStart hook confirms wiring."
+Write-Host "  3. 대상 저장소에서 Claude Code를 엽니다; SessionStart 훅이 연결을 확인합니다."

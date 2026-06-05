@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""PreToolUse(Edit|Write|NotebookEdit) hook.
+"""PreToolUse(Edit|Write|NotebookEdit) 훅.
 
-Two independent, independently-toggleable responsibilities:
+서로 독립적이며 개별적으로 토글 가능한 두 가지 책임:
 
-1. **Secret scan** (``secretScan.enabled``). Blocks writes whose content
-   contains credential patterns. Built-in generic patterns (AWS keys, JWT,
-   private keys, generic ``password=`` / ``api_key=``) always apply; opt-in
-   locale presets (krPii, cognito, connectArn) and project ``extraPatterns``
-   extend them. This is the last line of defense before a file hits disk —
-   gitleaks / trufflehog catch the rest at CI.
+1. **시크릿 스캔** (``secretScan.enabled``). 내용에 자격 증명 패턴이 포함된
+   쓰기를 차단한다. 내장 범용 패턴(AWS 키, JWT, 개인 키, 일반
+   ``password=`` / ``api_key=``)은 항상 적용되고, 선택형 로케일 프리셋
+   (krPii, cognito, connectArn)과 프로젝트 ``extraPatterns``가 이를 확장한다.
+   파일이 디스크에 닿기 전 마지막 방어선이며 — 나머지는 CI에서
+   gitleaks / trufflehog가 잡는다.
 
-2. **Domain boundary enforcement** (``boundaries.enabled``, OFF by default).
-   Infers the owning "domain" from the current git branch and denies writes
-   that leave that domain's zone. ``mode: soft`` warns on unrecognized
-   branches; ``mode: strict`` denies them. Useful for multi-agent or
-   multi-owner repos. See README §Boundaries.
+2. **도메인 경계 강제** (``boundaries.enabled``, 기본 OFF). 현재 git 브랜치에서
+   소유 "도메인"을 추론하고, 그 도메인의 영역을 벗어나는 쓰기를 거부한다.
+   ``mode: soft``는 인식되지 않는 브랜치에 경고하고, ``mode: strict``는 거부한다.
+   멀티 에이전트나 다중 소유자 저장소에 유용하다. README §Boundaries 참고.
 
-Configure via governance.config.json; you should not need to edit this file.
+governance.config.json으로 설정한다. 이 파일을 수정할 필요는 없다.
 """
 from __future__ import annotations
 
@@ -29,34 +28,34 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _config import cfg, is_enabled  # noqa: E402
 
-# --- Built-in secret patterns (project-agnostic) -------------------------
+# --- 내장 시크릿 패턴 (프로젝트 무관) ------------------------------------
 BUILTIN_SECRETS: list[tuple[str, str]] = [
-    (r"\bAKIA[0-9A-Z]{16}\b", "AWS access key ID"),
-    (r"\bASIA[0-9A-Z]{16}\b", "AWS temporary access key"),
-    (r"(?i)aws_secret_access_key\s*=\s*['\"]?[A-Za-z0-9/+=]{40}", "AWS secret access key"),
-    (r"(?i)\bsecret[_-]?access[_-]?key\s*[:=]\s*['\"][A-Za-z0-9/+=]{40}", "AWS secret access key"),
-    (r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b", "JWT-shaped token"),
-    (r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----", "private key block"),
-    (r"(?i)\b(password|passwd|pwd)\s*[:=]\s*['\"][^'\"\s]{8,}", "hardcoded password"),
-    (r"(?i)\bapi[_-]?key\s*[:=]\s*['\"][A-Za-z0-9_-]{20,}", "API key literal"),
-    (r"\bgh[pousr]_[A-Za-z0-9]{36,}\b", "GitHub token"),
-    (r"\bglpat-[A-Za-z0-9_-]{20,}\b", "GitLab personal access token"),
-    (r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b", "Slack token"),
-    (r"\bsk-[A-Za-z0-9]{20,}\b", "OpenAI-style secret key"),
+    (r"\bAKIA[0-9A-Z]{16}\b", "AWS 액세스 키 ID"),
+    (r"\bASIA[0-9A-Z]{16}\b", "AWS 임시 액세스 키"),
+    (r"(?i)aws_secret_access_key\s*=\s*['\"]?[A-Za-z0-9/+=]{40}", "AWS 시크릿 액세스 키"),
+    (r"(?i)\bsecret[_-]?access[_-]?key\s*[:=]\s*['\"][A-Za-z0-9/+=]{40}", "AWS 시크릿 액세스 키"),
+    (r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b", "JWT 형태 토큰"),
+    (r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----", "개인 키 블록"),
+    (r"(?i)\b(password|passwd|pwd)\s*[:=]\s*['\"][^'\"\s]{8,}", "하드코딩된 비밀번호"),
+    (r"(?i)\bapi[_-]?key\s*[:=]\s*['\"][A-Za-z0-9_-]{20,}", "API 키 리터럴"),
+    (r"\bgh[pousr]_[A-Za-z0-9]{36,}\b", "GitHub 토큰"),
+    (r"\bglpat-[A-Za-z0-9_-]{20,}\b", "GitLab 개인 액세스 토큰"),
+    (r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b", "Slack 토큰"),
+    (r"\bsk-[A-Za-z0-9]{20,}\b", "OpenAI 형태 시크릿 키"),
 ]
 
-# --- Opt-in locale / vendor presets --------------------------------------
+# --- 선택형 로케일 / 벤더 프리셋 ------------------------------------------
 PRESET_SECRETS: dict[str, list[tuple[str, str]]] = {
     "krPii": [
-        (r"\b01[016789]-?\d{3,4}-?\d{4}\b", "KR mobile phone number"),
-        (r"\b\d{6}-[1-4]\d{6}\b", "KR resident registration number"),
+        (r"\b01[016789]-?\d{3,4}-?\d{4}\b", "한국 휴대폰 번호"),
+        (r"\b\d{6}-[1-4]\d{6}\b", "한국 주민등록번호"),
     ],
     "cognito": [
-        (r"\b[a-z]{2}-[a-z]+-\d_[A-Za-z0-9]{9}\b", "Cognito User Pool ID (full value)"),
+        (r"\b[a-z]{2}-[a-z]+-\d_[A-Za-z0-9]{9}\b", "Cognito User Pool ID (전체 값)"),
         (r"\b[a-z]{2}-[a-z]+-\d:[0-9a-f-]{36}\b", "Cognito Identity Pool ID"),
     ],
     "connectArn": [
-        (r"arn:aws:connect:[^:\s]+:\d+:instance/[0-9a-f-]{36}", "full Connect InstanceId ARN"),
+        (r"arn:aws:connect:[^:\s]+:\d+:instance/[0-9a-f-]{36}", "전체 Connect InstanceId ARN"),
     ],
 }
 
@@ -69,13 +68,13 @@ def build_secret_patterns() -> list[tuple[str, str]]:
             patterns.extend(PRESET_SECRETS[name])
     for item in cfg("secretScan.extraPatterns", []) or []:
         regex = item.get("regex")
-        label = item.get("label", "project-defined secret")
+        label = item.get("label", "프로젝트에서 정의한 시크릿")
         if regex:
             patterns.append((regex, label))
     return patterns
 
 
-# --- Helpers --------------------------------------------------------------
+# --- 헬퍼 -----------------------------------------------------------------
 def current_branch() -> str | None:
     try:
         out = subprocess.run(
@@ -113,12 +112,12 @@ def _compile_all(key: str) -> list[re.Pattern[str]]:
         try:
             out.append(re.compile(raw))
         except re.error as exc:
-            print(f"[pre-tool-write] WARN: bad regex in {key}: {raw!r} ({exc})", file=sys.stderr)
+            print(f"[pre-tool-write] 경고: {key}의 잘못된 정규식: {raw!r} ({exc})", file=sys.stderr)
     return out
 
 
 def check_boundary(rel: str, branch: str | None) -> str | None:
-    """Return None to allow; a human reason string to deny. Boundaries OFF -> always None."""
+    """허용하면 None을, 거부하면 사람이 읽을 이유 문자열을 반환. 경계 OFF -> 항상 None."""
     if not is_enabled("boundaries", False):
         return None
 
@@ -137,8 +136,8 @@ def check_boundary(rel: str, branch: str | None) -> str | None:
     for pat in _compile_all("boundaries.bootstrapOnly"):
         if pat.search(rel):
             return (
-                f"protected path '{rel}' requires a bootstrap/infra/shared "
-                f"branch; current branch: {branch!r}"
+                f"보호된 경로 '{rel}'에는 bootstrap/infra/shared 브랜치가 "
+                f"필요함; 현재 브랜치: {branch!r}"
             )
 
     branch_re = cfg("boundaries.branchPattern")
@@ -163,16 +162,16 @@ def check_boundary(rel: str, branch: str | None) -> str | None:
             if pat.search(rel):
                 return None
         return (
-            f"branch {branch!r} owns domain '{domain}' but target '{rel}' "
-            f"lies outside that domain's zones"
+            f"브랜치 {branch!r}는 도메인 '{domain}'을 소유하지만 대상 '{rel}'은 "
+            f"그 도메인의 영역 밖에 있음"
         )
 
-    # Unrecognized branch.
+    # 인식되지 않는 브랜치.
     if cfg("boundaries.mode", "soft") == "strict":
-        return f"strict boundaries: unrecognized branch {branch!r} may not write {rel!r}"
+        return f"strict 경계: 인식되지 않는 브랜치 {branch!r}는 {rel!r}에 쓸 수 없음"
     print(
-        f"[pre-tool-write] WARN: unrecognized branch {branch!r} writing to "
-        f"{rel!r}; allowing (soft mode).",
+        f"[pre-tool-write] 경고: 인식되지 않는 브랜치 {branch!r}가 "
+        f"{rel!r}에 쓰는 중; 허용함 (soft 모드).",
         file=sys.stderr,
     )
     return None
@@ -187,7 +186,7 @@ def main() -> int:
     try:
         payload = read_payload()
     except Exception as exc:
-        print(f"[pre-tool-write] WARN: malformed stdin ({exc}); allowing", file=sys.stderr)
+        print(f"[pre-tool-write] 경고: 잘못된 stdin ({exc}); 허용함", file=sys.stderr)
         return 0
 
     if payload.get("tool_name") not in ("Write", "Edit", "NotebookEdit"):
@@ -203,7 +202,7 @@ def main() -> int:
 
     reason = check_boundary(rel, branch)
     if reason:
-        print(f"[pre-tool-write] DENY: {reason}", file=sys.stderr)
+        print(f"[pre-tool-write] 거부: {reason}", file=sys.stderr)
         return 2
 
     if is_enabled("secretScan", True):
@@ -213,8 +212,8 @@ def main() -> int:
             if hit:
                 label, sample = hit
                 print(
-                    f"[pre-tool-write] DENY: {label} detected in write to {rel}\n"
-                    f"  sample: {sample!r}",
+                    f"[pre-tool-write] 거부: {rel}에 대한 쓰기에서 {label} 감지\n"
+                    f"  샘플: {sample!r}",
                     file=sys.stderr,
                 )
                 return 2

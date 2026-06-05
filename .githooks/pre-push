@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
-# Git pre-push hook — block pushing a branch that is behind its remote target.
+# Git pre-push 훅 — 원격 대상보다 뒤처진 브랜치의 push를 차단한다.
 #
-# Mirror of .claude/hooks/pre-push-check.py for developers using non-CLI
-# Claude clients (Desktop / IDE) or plain git. Both hooks return the same
-# verdict, so running both causes no conflict.
+# CLI가 아닌 Claude 클라이언트(Desktop / IDE)나 순수 git을 쓰는 개발자를 위한
+# .claude/hooks/pre-push-check.py의 미러. 두 훅은 동일한 판정을 반환하므로
+# 둘 다 실행해도 충돌이 없다.
 #
-# Install once per clone:   git config core.hooksPath .githooks
-# (or symlink into .git/hooks/pre-push)
+# 클론마다 한 번 설치:   git config core.hooksPath .githooks
+# (또는 .git/hooks/pre-push로 심볼릭 링크)
 set -euo pipefail
 
 remote_name="${1:-origin}"
 
-# stdin lines: <local ref> <local sha> <remote ref> <remote sha>
+# stdin 라인: <로컬 ref> <로컬 sha> <원격 ref> <원격 sha>
 while read -r local_ref local_sha remote_ref remote_sha; do
-  # Skip deletes (local_sha all zeros).
+  # 삭제는 건너뛴다(local_sha가 전부 0).
   if [[ "$local_sha" =~ ^0+$ ]]; then
     continue
   fi
-  # New branch on remote (remote_sha all zeros) -> nothing to be behind of.
+  # 원격의 새 브랜치(remote_sha가 전부 0) -> 뒤처질 대상이 없음.
   if [[ "$remote_sha" =~ ^0+$ ]]; then
     continue
   fi
 
   branch="${remote_ref#refs/heads/}"
 
-  # Fetch the latest remote state (best-effort, non-fatal).
+  # 최신 원격 상태를 fetch한다(최선 노력, 치명적이지 않음).
   git fetch "$remote_name" "$branch" >/dev/null 2>&1 || continue
 
-  # Is the remote tip an ancestor of what we're pushing? If not, we're behind.
+  # 원격 끝이 우리가 push하려는 것의 조상인가? 아니면 우리가 뒤처진 것이다.
   if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" >/dev/null 2>&1; then
-    echo "[pre-push] DENY: local '$branch' is behind ${remote_name}/${branch} -- rebase or merge first" >&2
-    echo "  suggestion: git fetch ${remote_name} ${branch} && git rebase ${remote_name}/${branch}" >&2
+    echo "[pre-push] 거부: 로컬 '$branch'가 ${remote_name}/${branch}보다 뒤처짐 -- 먼저 rebase 또는 merge 하세요" >&2
+    echo "  제안: git fetch ${remote_name} ${branch} && git rebase ${remote_name}/${branch}" >&2
     exit 1
   fi
 done

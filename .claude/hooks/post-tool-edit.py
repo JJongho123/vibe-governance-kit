@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""PostToolUse(Edit|Write) hook — auto-format written files.
+"""PostToolUse(Edit|Write) 훅 — 쓰여진 파일을 자동 포맷한다.
 
-Invokes the appropriate formatter for the target file's extension, silently
-skipping if the formatter isn't installed. Never fails the tool call:
-formatting is post-processing, not a gate.
+대상 파일의 확장자에 맞는 포매터를 호출하며, 포매터가 설치되어 있지 않으면
+조용히 건너뛴다. 도구 호출을 절대 실패시키지 않는다: 포맷은 게이트가 아니라
+후처리다.
 
-Tool chain:
+도구 체인:
   .ts/.tsx/.js/.jsx/.json/.md/.css/.html/.yaml -> prettier --write
   .py                                           -> ruff format ; ruff check --fix
   .tf/.tfvars                                   -> terraform fmt
   .go                                           -> gofmt -w
   .rs                                           -> rustfmt
 
-Toggle with ``format.enabled`` in governance.config.json.
+governance.config.json의 ``format.enabled``로 토글한다.
 """
 from __future__ import annotations
 

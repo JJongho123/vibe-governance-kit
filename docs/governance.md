@@ -1,106 +1,104 @@
-# Vibe Coding Governance — Team Policy
+# 바이브 코딩 거버넌스 — 팀 정책
 
-> Distilled, project-agnostic governance for AI-assisted ("vibe") coding.
-> Adapt the bracketed `[…]` placeholders to your team, then commit.
-> The harness in `.claude/` enforces the deterministic parts of this document;
-> this file carries the human-judgment parts.
+> AI 보조("바이브") 코딩을 위해 정제한, 프로젝트에 구애받지 않는 거버넌스입니다.
+> 대괄호 `[…]` 자리표시자를 팀에 맞게 바꾼 뒤 커밋하세요.
+> `.claude/`의 하네스가 이 문서의 결정론적 부분을 강제하며,
+> 이 파일은 사람의 판단이 필요한 부분을 담습니다.
 
-## 0. Five core principles
+## 0. 다섯 가지 핵심 원칙
 
-1. **Vibe-but-Check.** AI does the heavy lifting; humans provide governance
-   (review, approval, audit). Speed without verification becomes tech debt.
-2. **Deterministic Governance First.** A rule a tool *enforces* beats a rule
-   a prompt *requests*. Push every enforceable rule into `settings.json` /
-   hooks / CI. Keep `CLAUDE.md` for the un-enforceable (design, domain knowledge).
-3. **Untrusted Input by Default.** Every external input (tickets, transcripts,
-   emails, web pages, MCP tool output) is untrusted. Watch the Lethal Trifecta.
-4. **Checkpoint-Heavy Workflow.** Commit on every working change so a failed
-   experiment rolls back instantly. Many small commits over one big one.
-5. **One-shot then Collaborate.** Try a quick one-shot prompt first; on failure,
-   switch to plan → SPEC → implement. Don't over-engineer prompts.
+1. **바이브하되 검증하라(Vibe-but-Check).** AI가 무거운 작업을 하고, 사람은
+   거버넌스(리뷰, 승인, 감사)를 제공한다. 검증 없는 속도는 기술 부채가 된다.
+2. **결정론적 거버넌스 우선.** 도구가 *강제하는* 규칙이 프롬프트가 *요청하는*
+   규칙을 이긴다. 강제 가능한 규칙은 모두 `settings.json` / 훅 / CI로 밀어넣어라.
+   `CLAUDE.md`는 강제할 수 없는 것(설계, 도메인 지식)을 위해 남겨라.
+3. **기본적으로 입력은 신뢰하지 않는다.** 모든 외부 입력(티켓, 통화 기록,
+   이메일, 웹 페이지, MCP 도구 출력)은 신뢰할 수 없다. 치명적 삼중 위협을 경계하라.
+4. **체크포인트가 많은 워크플로.** 동작하는 변경마다 커밋하여 실패한 실험을
+   즉시 되돌릴 수 있게 하라. 큰 커밋 하나보다 작은 커밋 여럿.
+5. **원샷 후 협업.** 먼저 빠른 원샷 프롬프트를 시도하고, 실패하면 계획 → SPEC →
+   구현으로 전환하라. 프롬프트를 과하게 설계하지 마라.
 
-## 1. `CLAUDE.md` — the shared AI directive
+## 1. `CLAUDE.md` — 공유 AI 지침
 
-- Lives at repo root, committed. Every Claude Code session reads it.
-- Keep it under ~50 instructions; frontier models reliably follow only
-  150–200, and the harness already spends ~50. Split overflow via `@import`.
-- Anything a linter / formatter / type-checker can enforce does **not** belong
-  here — move it to a `PostToolUse` hook.
-- Mark non-negotiable rules with **IMPORTANT** or **YOU MUST**.
-- Personal overrides go in `CLAUDE.local.md` (gitignored), never the shared file.
+- 저장소 루트에 두고 커밋한다. 모든 Claude Code 세션이 이를 읽는다.
+- 약 50개 지침 이하로 유지한다. 프런티어 모델은 150~200개 정도만 안정적으로
+  따르며, 하네스가 이미 약 50개를 쓴다. 초과분은 `@import`로 분리한다.
+- 린터 / 포매터 / 타입 체커가 강제할 수 있는 것은 여기 두지 **않는다** —
+  `PostToolUse` 훅으로 옮긴다.
+- 타협 불가 규칙은 **IMPORTANT**나 **YOU MUST**로 표시한다.
+- 개인 오버라이드는 `CLAUDE.local.md`(gitignore)에 두고, 공유 파일에는 절대 두지 않는다.
 
-## 2. Git strategy
+## 2. Git 전략
 
-| Branch              | Purpose              | Direct push | Merge                       |
+| 브랜치              | 목적                 | 직접 push | 병합                        |
 | ------------------- | -------------------- | ----------- | --------------------------- |
-| `main`              | production           | never       | PR + 1 approval + green CI  |
-| `feat/<area>/<task>`| feature work         | free        | PR → main                   |
-| `fix/<desc>`        | bug fix              | free        | PR → main                   |
-| `hotfix/<desc>`     | urgent prod fix      | never       | PR → main (fast-track)      |
+| `main`              | 프로덕션             | 절대 금지   | PR + 1명 승인 + CI 통과     |
+| `feat/<area>/<task>`| 기능 작업            | 자유        | PR → main                   |
+| `fix/<desc>`        | 버그 수정            | 자유        | PR → main                   |
+| `hotfix/<desc>`     | 긴급 프로덕션 수정   | 절대 금지   | PR → main (패스트트랙)      |
 
-- Branch lifetime ≤ 2–3 days; long-lived branches are the #1 cause of merge pain.
-- Rebase onto the main branch at least daily.
-- **Checkpoint-heavy commits.** Ask the agent to commit per work unit.
-- Commit convention: `feat: / fix: / refactor: / docs: / chore: / test: / perf:`.
-- **AI attribution tags** on every AI-touched commit:
-  - `[ai-generated]` — AI wrote ≥90% (2-reviewer recommended)
-  - `[ai-assisted]` — AI + substantial human edits (1 reviewer + hallucination check)
-  - `[ai-reviewed]` — human wrote, AI reviewed (standard review)
-- `Co-authored-by:` is attached automatically via `settings.json attribution` —
-  do not ask the model to add it.
+- 브랜치 수명 ≤ 2~3일; 오래 살아남는 브랜치는 병합 고통의 #1 원인이다.
+- 최소 하루 한 번은 main 브랜치 위로 리베이스한다.
+- **체크포인트가 많은 커밋.** 에이전트에게 작업 단위마다 커밋하도록 요청하라.
+- 커밋 규칙: `feat: / fix: / refactor: / docs: / chore: / test: / perf:`.
+- AI가 손댄 모든 커밋에 **AI 표기 태그**:
+  - `[ai-generated]` — AI가 90% 이상 작성 (리뷰어 2명 권장)
+  - `[ai-assisted]` — AI + 상당한 사람 수정 (리뷰어 1명 + 환각 체크)
+  - `[ai-reviewed]` — 사람이 작성, AI가 리뷰 (표준 리뷰)
+- `Co-authored-by:`는 `settings.json attribution`을 통해 자동으로 붙는다 —
+  모델에게 추가하라고 요청하지 마라.
 
-## 3. File ownership
+## 3. 파일 소유권
 
-- Declare ownership in `CODEOWNERS`.
-- One file, one owner at a time — avoid concurrent edits to the same file.
-- The `boundaries` block in `governance.config.json` can enforce branch→path
-  ownership at the harness layer (see README §Boundaries).
+- `CODEOWNERS`에 소유권을 선언한다.
+- 한 파일에는 한 번에 한 소유자 — 같은 파일을 동시에 편집하지 않는다.
+- `governance.config.json`의 `boundaries` 블록이 하네스 계층에서 브랜치→경로
+  소유권을 강제할 수 있다(README §Boundaries 참고).
 
-## 4. PR review
+## 4. PR 리뷰
 
-- Write a 1-page `SPEC.md` (or issue) before prompting for anything non-trivial.
-  Keep the SPEC session and the implementation session separate.
-- Required checklist lives in `.github/pull_request_template.md`. Highlights:
-  - Every AI line was read and understood; correct `[ai-*]` tag applied.
-  - Tests added/passing; implementation and tests not generated in the same
-    session (avoids self-fulfilling tests).
-  - **Top 5 CWE** checked: CWE-862 (missing authz), CWE-798 (hardcoded creds),
-    CWE-89 (injection), CWE-79 (XSS), CWE-200 (sensitive info exposure).
-  - **Lethal Trifecta** analysis for anything touching an AI/LLM path
-    (see `docs/injection-defense.md`).
-  - **Hallucination check**: every SDK method / API / package / IAM action /
-    doc link the AI used actually exists.
-- Reviewer rule: AI code looks confident and harbors quiet bugs — review it
-  *more* carefully, not less. 48-hour merge-or-feedback rule.
+- 사소하지 않은 작업을 프롬프트하기 전에 1페이지짜리 `SPEC.md`(또는 이슈)를
+  작성한다. SPEC 세션과 구현 세션은 분리한다.
+- 필수 체크리스트는 `.github/pull_request_template.md`에 있다. 핵심:
+  - 모든 AI 라인을 읽고 이해했으며, 올바른 `[ai-*]` 태그를 적용했다.
+  - 테스트 추가/통과; 구현과 테스트를 같은 세션에서 생성하지 않았다
+    (자기 충족적 테스트 방지).
+  - **Top 5 CWE** 확인: CWE-862(권한 누락), CWE-798(자격 증명 하드코딩),
+    CWE-89(인젝션), CWE-79(XSS), CWE-200(민감 정보 노출).
+  - AI/LLM 경로를 건드리는 모든 것에 대한 **치명적 삼중 위협** 분석
+    (`docs/injection-defense.md` 참고).
+  - **환각 체크**: AI가 사용한 모든 SDK 메서드 / API / 패키지 / IAM 액션 /
+    문서 링크가 실제로 존재하는지 확인.
+- 리뷰어 규칙: AI 코드는 자신감 있어 보이지만 조용한 버그를 품는다 — *덜*이 아니라
+  *더* 주의 깊게 리뷰하라. 48시간 병합-또는-피드백 규칙.
 
-## 5. CI/CD gates (recommended)
+## 5. CI/CD 게이트 (권장)
 
-Lint + type-check · unit tests w/ coverage · secret scan (gitleaks/trufflehog)
-· dependency audit · SAST (Semgrep OWASP ruleset) · IaC scan (if applicable)
-· build. Block merge on any high-severity finding. Protect `main`
-(no direct push, code-owner approval, no force-push).
+린트 + 타입 체크 · 커버리지 포함 단위 테스트 · 시크릿 스캔(gitleaks/trufflehog)
+· 의존성 감사 · SAST(Semgrep OWASP 룰셋) · IaC 스캔(해당 시) · 빌드. 고심각도
+발견이 있으면 병합을 차단한다. `main`을 보호한다(직접 push 금지, 코드 소유자
+승인, 강제 push 금지).
 
-## 6. Prompt injection & the Lethal Trifecta
+## 6. 프롬프트 인젝션과 치명적 삼중 위협
 
-See `docs/injection-defense.md`. Hard rule: a workflow that simultaneously
-has (1) sensitive-data access, (2) untrusted input, and (3) an external egress
-path is vulnerable — remove at least one, usually egress.
+`docs/injection-defense.md` 참고. 강한 규칙: (1) 민감 데이터 접근, (2) 신뢰할 수
+없는 입력, (3) 외부 유출 경로를 동시에 가진 워크플로는 취약하다 — 최소 하나를
+제거하라(보통 유출 경로).
 
-## 7. Data loss prevention
+## 7. 데이터 유출 방지
 
-See `docs/secret-policy.md`. Never paste real secrets, credentials, customer
-PII, or internal data into a prompt. The `secretScan` hook is the last line of
-defense before disk; CI secret scanning backstops it.
+`docs/secret-policy.md` 참고. 실제 시크릿, 자격 증명, 고객 PII, 내부 데이터를
+프롬프트에 절대 붙여넣지 마라. `secretScan` 훅은 디스크에 닿기 전 마지막
+방어선이며, CI 시크릿 스캐닝이 이를 보강한다.
 
-## 8. Incident → Hook loop
+## 8. 사고 → 훅 루프
 
-Every incident or near-miss produces (1) a post-mortem, and (2) a concrete
-harness change — a new dangerous-command pattern, secret pattern, denied path,
-or slash command — so the same mistake cannot recur. Don't let lessons die in
-a doc.
+모든 사고나 아차 사고는 (1) 사후 분석과 (2) 구체적인 하네스 변경 — 새 위험
+명령 패턴, 시크릿 패턴, 차단 경로, 또는 슬래시 명령 — 을 만들어 같은 실수가
+재발할 수 없게 한다. 교훈이 문서 속에서 죽게 두지 마라.
 
-## 9. Metrics worth tracking
+## 9. 추적할 가치가 있는 지표
 
-AI-code ratio (`[ai-*]` tag share) · AI-related rollback rate · PR merge time ·
-hallucinations caught in review · secret incidents (target: 0) · Top-5-CWE
-findings trend. Measure to improve.
+AI 코드 비율(`[ai-*]` 태그 점유율) · AI 관련 롤백률 · PR 병합 시간 · 리뷰에서
+잡은 환각 · 시크릿 사고(목표: 0) · Top-5-CWE 발견 추이. 개선하려면 측정하라.

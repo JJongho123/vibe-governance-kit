@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schema/settings.json",
-  "_comment": "Harness-enforced governance (vibe-governance-kit). Two deterministic layers: (1) permissions.deny — fast static blocks; (2) hooks — config-driven, read governance.config.json. Edit governance.config.json for project-specific values, not this file. Keep this committed; senior-managed.",
+  "_comment": "하네스가 강제하는 거버넌스 (vibe-governance-kit). 두 결정론적 계층: (1) permissions.deny — 빠른 정적 차단; (2) hooks — 설정 기반, governance.config.json을 읽음. 프로젝트별 값은 이 파일이 아니라 governance.config.json에서 수정하세요. 이 파일은 커밋해 두며, 시니어가 관리합니다.",
   "permissions": {
     "deny": [
       "Bash(rm -rf *)",
